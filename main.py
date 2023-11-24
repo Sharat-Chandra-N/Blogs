@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, status, Response
 from typing import Optional
-from Model import schema, models, database
+from Model import schema, models, database, hashing
 from sqlalchemy.orm import Session
 
 app = FastAPI()
@@ -77,3 +77,13 @@ def update_blog(id, request: schema.Blog, response: Response, db:Session = Depen
     db.commit()
 
     return{"response": "Blog Updated"}
+
+@app.post("/create_user", status_code=status.HTTP_200_OK)
+def create_user(request: schema.User, db:Session = Depends(get_db)):
+
+    new_user = models.User(name=request.name, email=request.email, password=hashing.Hash.create_hash(request.password))
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return{"response": {"name": new_user.name, "email": new_user.email}}
