@@ -51,3 +51,29 @@ def get_blog(id, response: Response, db:Session = Depends(get_db)):
         return{"response": "Blog not found"}
     
     return{"response": blog}
+
+@app.delete("/delete_blog/{id}", status_code=status.HTTP_200_OK)
+def delete_blog(id, response: Response, db:Session = Depends(get_db)):
+
+    blog = db.query(models.Blog).filter(models.Blog.id == id)
+    if not blog.first():
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return{"response": "Blog not found"}
+    
+    blog.delete(synchronize_session=False)
+    db.commit()
+
+    return{"response": "Blog Deleted"}
+
+@app.put("/update_blog/{id}", status_code=status.HTTP_200_OK)
+def update_blog(id, request: schema.Blog, response: Response, db:Session = Depends(get_db)):
+
+    blog = db.query(models.Blog).filter(models.Blog.id == id)
+    if not blog.first():
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return{"response": "Blog not found"}
+    
+    blog.update({"title": request.title, "body": request.body})
+    db.commit()
+
+    return{"response": "Blog Updated"}
